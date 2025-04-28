@@ -1,25 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Severe Weather Reporting</title>
+  <title>Severe Weather Reporting System</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    /* Previous CSS remains the same */
-    body { max-width: 600px; margin: 20px auto; padding: 0 20px; font-family: Arial }
-    #map { height: 500px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1) }
-    form { background: #f8f9fa; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1) }
-    input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px }
-    button { background: #007bff; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; transition: background 0.3s }
-    button:hover { background: #0056b3 }
-    .weather-icon { background: transparent !important; border: none !important; font-size: 24px; text-align: center; line-height: 30px }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    #map { 
+      height: 500px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    form {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      margin-top: 15px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .weather-icon {
+      background: transparent !important;
+      border: none !important;
+      font-size: 24px;
+      text-align: center;
+      line-height: 30px;
+    }
   </style>
 </head>
 <body>
   <form id="reportForm">
-    <input type="text" name="name" placeholder="Name" required>
-    <input type="number" name="id" placeholder="ID Number" required>
+    <input type="text" name="name" placeholder="Reporter Name" required>
+    <input type="number" name="id" placeholder="Reporter ID" required>
     
-    <!-- COMPLETE STATE DROPDOWN -->
     <select name="state" required>
       <option value="">Select State</option>
       <option value="AL">Alabama</option>
@@ -76,7 +116,6 @@
 
     <input type="text" name="zip" placeholder="ZIP Code" pattern="\d{5}" required>
     
-    <!-- WEATHER TYPE DROPDOWN -->
     <select name="weatherType" required>
       <option value="">Select Weather Type</option>
       <option value="tornado">🌪️ Tornado</option>
@@ -91,27 +130,103 @@
       <option value="flooding">🌊 Flooding</option>
     </select>
 
-    <textarea name="notes" placeholder="Additional Notes" rows="4"></textarea>
-    <button type="submit">Submit Report</button>
+    <textarea name="notes" placeholder="Observation Details" rows="4"></textarea>
+    <button type="submit">Submit Weather Report</button>
   </form>
 
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Your Config -->
   <script>
-    // ========== REPLACE THESE ========== //
+    // ========== REPLACE THESE VALUES ========== //
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTbZYmJddChpcWGD8PErbgzT-4ruYn2ZZcFjkIGBDSjsjC4i-ooV8ckOcpjhmjemFb6Q/exec';
-    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QDc5s1UhHzHkC5gIXkHqn1DbZgOr7s4k_-VUHGFlPmk/edit?usp=sharing';
-    
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRFW7Hs3QefR6iwCVTctGTfXzkpr5GtfKiF51MtgmeHg205BdruATfJn1qfvzSULSXz3fSGcLHv9VTa/pub?output=csv';
+
     // Initialize Map
     const map = L.map('map').setView([37.8, -96], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Rest of the script remains the same as previous version
-    // (weather icons, form submission handler, marker functions)
+    // Weather Icons Configuration
+    const weatherIcons = {
+      tornado: L.divIcon({ html: '🌪️', className: 'weather-icon', iconSize: [30, 30] }),
+      funnel_cloud: L.divIcon({ html: '🌪️', className: 'weather-icon', iconSize: [30, 30] }),
+      hail: L.divIcon({ html: '🌨️', className: 'weather-icon', iconSize: [30, 30] }),
+      damaging_winds: L.divIcon({ html: '🌬️', className: 'weather-icon', iconSize: [30, 30] }),
+      dense_fog: L.divIcon({ html: '🌫️', className: 'weather-icon', iconSize: [30, 30] }),
+      sleet: L.divIcon({ html: '🌨️', className: 'weather-icon', iconSize: [30, 30] }),
+      heavy_snow: L.divIcon({ html: '❄️', className: 'weather-icon', iconSize: [30, 30] }),
+      fire: L.divIcon({ html: '🔥', className: 'weather-icon', iconSize: [30, 30] }),
+      thunderstorm: L.divIcon({ html: '⛈️', className: 'weather-icon', iconSize: [30, 30] }),
+      flooding: L.divIcon({ html: '🌊', className: 'weather-icon', iconSize: [30, 30] })
+    };
+
+    // Form Submission Handler
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          addMarker(result.lat, result.lng, data.name, data.weatherType, data.notes);
+          alert('Report submitted successfully!');
+        } else {
+          alert(`Error: ${result.error}`);
+        }
+      } catch (error) {
+        alert('Error submitting report - check console');
+        console.error('Submission error:', error);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Weather Report';
+        e.target.reset();
+      }
+    });
+
+    // Add Marker Function
+    function addMarker(lat, lng, name, weatherType, notes) {
+      L.marker([lat, lng], {
+        icon: weatherIcons[weatherType] || L.Icon.Default
+      }).addTo(map)
+        .bindPopup(`
+          <b>${name}</b><br>
+          <b>Weather:</b> ${weatherType}<br>
+          <b>Notes:</b> ${notes || 'No additional details'}
+        `);
+    }
+
+    // Load Existing Markers
+    async function loadMarkers() {
+      try {
+        const response = await fetch(SHEET_CSV_URL);
+        const csvData = await response.text();
+        
+        csvData.split('\n').slice(1).forEach(row => {
+          const [timestamp, name, id, state, zip, weather, notes, lat, lng] = row.split(',');
+          const parsedLat = parseFloat(lat);
+          const parsedLng = parseFloat(lng);
+          
+          if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+            addMarker(parsedLat, parsedLng, name, weather, notes);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading markers:', error);
+      }
+    }
+    loadMarkers();
   </script>
 </body>
 </html>
