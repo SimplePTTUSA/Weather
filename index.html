@@ -185,20 +185,27 @@
   btn.textContent = 'Submitting...';
 
   try {
-    const formData = new FormData(e.target);
-    const params = new URLSearchParams(formData);
-
-    // Validate ZIP code client-side first
-    const zip = formData.get('zip');
-    if (!zip || zip.length !== 5 || isNaN(zip)) {
-      throw new Error('Invalid ZIP code format (must be 5 digits)');
-    }
+    // Convert form data to JSON
+    const formData = {
+      name: e.target.name.value,
+      id: e.target.id.value,
+      state: e.target.state.value,
+      zip: e.target.zip.value,
+      weatherType: e.target.weatherType.value,
+      notes: e.target.notes.value
+    };
 
     const response = await fetch('YOUR_GOOGLE_SCRIPT_URL', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
     });
+
+    // ... rest of your code ...
+  } catch (error) {
+    // ... error handling ...
+  }
+});
 
     const result = await response.json();
     
