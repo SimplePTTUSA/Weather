@@ -148,86 +148,72 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-  // Custom Weather Icons Configuration
-  const weatherIcons = {
-    tornado: L.divIcon({
-      html: '🌪️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    funnel_cloud: L.divIcon({
-      html: '🌪️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    hail: L.divIcon({
-      html: '🌨️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    damaging_winds: L.divIcon({
-      html: '🌬️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    dense_fog: L.divIcon({
-      html: '🌫️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    sleet: L.divIcon({
-      html: '🌨️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    heavy_snow: L.divIcon({
-      html: '❄️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    fire: L.divIcon({
-      html: '🔥',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    thunderstorm: L.divIcon({
-      html: '⛈️',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    }),
-    flooding: L.divIcon({
-      html: '🌊',
-      className: 'weather-icon',
-      iconSize: [30, 30]
-    })
-  };
+    // Initialize Map
+    const map = L.map('map').setView([37.8, -96], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-  // Load Markers from Google Sheet
-  async function loadMarkers() {
-    try {
-      const response = await fetch('https://docs.google.com/spreadsheets/d/1QDc5s1UhHzHkC5gIXkHqn1DbZgOr7s4k_-VUHGFlPmk/edit?usp=sharing');
-      const csvData = await response.text();
-      
-      csvData.split('\n').slice(1).forEach(row => {
-        const [timestamp, name, id, state, zip, weather, notes, lat, lng] = row.split(',');
+    // Form Submission
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwjdG7AXmOGX8SBcLVogYQM-UcG_UUzBHUd6eEX1DPHv5KBkOI3CUs3sVZiyf3puo49wg/exec', {
+          method: 'POST',
+          body: formData
+        });
         
-        if (lat && lng) {
-          // Use custom icon based on weather type
-          L.marker([parseFloat(lat), parseFloat(lng)], { 
-            icon: weatherIcons[weather] || L.Icon.Default 
-          })
-          .addTo(map)
-          .bindPopup(`
-            <b>${name}</b><br>
-            <b>Weather:</b> ${weatherIcons[weather].options.html} ${weather}<br>
-            <b>Notes:</b> ${notes || 'None'}
-          `);
+        if (response.ok) {
+          alert('Report submitted successfully!');
+          e.target.reset();
+          location.reload(); // Refresh to show new marker
+        } else {
+          alert('Error submitting report');
         }
-      });
-    } catch (error) {
-      console.error('Error loading markers:', error);
+      } catch (error) {
+        alert('Network error - please try again');
+      }
+    });
+
+    // Load Markers from Google Sheet
+    async function loadMarkers() {
+      try {
+        const response = await fetch('https://docs.google.com/spreadsheets/d/1QDc5s1UhHzHkC5gIXkHqn1DbZgOr7s4k_-VUHGFlPmk/edit?usp=sharing');
+        const csvData = await response.text();
+        
+        const weatherIcons = {
+          tornado: '🌪️',
+          funnel_cloud: '🌪️',
+          hail: '🌨️',
+          damaging_winds: '🌬️',
+          dense_fog: '🌫️',
+          sleet: '🌨️',
+          heavy_snow: '❄️',
+          fire: '🔥',
+          thunderstorm: '⛈️',
+          flooding: '🌊'
+        };
+
+        csvData.split('\n').slice(1).forEach(row => {
+          const [timestamp, name, id, state, zip, weather, notes, lat, lng] = row.split(',');
+          
+          if (lat && lng) {
+            L.marker([lat, lng])
+              .addTo(map)
+              .bindPopup(`
+                <b>${name}</b><br>
+                <b>Weather:</b> ${weatherIcons[weather]} ${weather}<br>
+                <b>Notes:</b> ${notes || 'None'}
+              `);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading markers:', error);
+      }
     }
-  }
-</script>
+    loadMarkers();
+  </script>
 </body>
 </html>
