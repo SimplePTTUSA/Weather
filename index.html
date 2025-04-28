@@ -228,8 +228,8 @@
     // Add Marker Function
     function addMarker(lat, lng, name, weather, notes) {
       L.marker([lat, lng], { 
-        icon: weatherIcons[weather] || L.Icon.Default 
-      }).addTo(map)
+        icon: weatherIcons[weatherType] || L.Icon.Default //
+          }).addTo(map)
         .bindPopup(`
           <b>${name}</b><br>
           <b>Weather:</b> ${weatherIcons[weather].options.html} ${weather}<br>
