@@ -180,20 +180,26 @@
     // Form Submission Handler
     document.getElementById('reportForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const btn = e.target.querySelector('button');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries()); // Convert to plain object
 
   try {
-    // Convert form data to JSON
-    const formData = {
-      name: e.target.name.value,
-      id: e.target.id.value,
-      state: e.target.state.value,
-      zip: e.target.zip.value,
-      weatherType: e.target.weatherType.value,
-      notes: e.target.notes.value
-    };
+    const response = await fetch('YOUR_GOOGLE_SCRIPT_URL', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data) // Send as JSON
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      // Handle success
+    } else {
+      alert(`Error: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Submission error:', error);
+  }
+});
 
     const response = await fetch('YOUR_GOOGLE_SCRIPT_URL', {
       method: 'POST',
