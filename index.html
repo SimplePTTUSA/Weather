@@ -191,35 +191,33 @@
 
   // Updated Form Submission
   document.getElementById('reportForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button');
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
+  e.preventDefault();
+  const formData = new FormData(e.target);
 
-    try {
-      const formData = new FormData(e.target);
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwjdG7AXmOGX8SBcLVogYQM-UcG_UUzBHUd6eEX1DPHv5KBkOI3CUs3sVZiyf3puo49wg/exec', {
-        method: 'POST',
-        body: formData
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        // Add marker immediately without waiting for CSV
-        const lat = parseFloat(formData.get('lat'));
-        const lng = parseFloat(formData.get('lng'));
+  try {
+    const response = await fetch('YOUR_GOOGLE_SCRIPT_URL', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Parse coordinates as numbers
+      const lat = Number(result.lat);
+      const lng = Number(result.lng);
+
+      if (!isNaN(lat) && !isNaN(lng)) { // 👈 Validate before adding marker
         addMarker(lat, lng, formData.get('name'), formData.get('weatherType'), formData.get('notes'));
-        alert('Report submitted! Marker added.');
+        alert('Marker added!');
+      } else {
+        alert('Invalid coordinates - check ZIP code');
       }
-    } catch (error) {
-      alert('Error: Check console');
-      console.error(error);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Submit Report';
     }
-  });
+  } catch (error) {
+    console.error('Submission error:', error);
+  }
+});
 
   // Load existing markers
   async function loadMarkers() {
