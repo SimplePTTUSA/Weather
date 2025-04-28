@@ -165,15 +165,29 @@
   };
 
   // Function to add a marker
-  function addMarker(lat, lng, name, weather, notes) {
-    L.marker([lat, lng], { icon: weatherIcons[weather] })
-     .addTo(map)
-     .bindPopup(`
-       <b>${name}</b><br>
-       <b>Weather:</b> ${weatherIcons[weather].options.html} ${weather}<br>
-       <b>Notes:</b> ${notes || 'None'}
-     `);
+  async function loadMarkers() {
+  try {
+    const response = await fetch('YOUR_SHEET_CSV_URL');
+    const csvData = await response.text();
+    
+    csvData.split('\n').slice(1).forEach(row => {
+      const [timestamp, name, id, state, zip, weather, notes, lat, lng] = row.split(',');
+
+      // Validate coordinates
+      const parsedLat = parseFloat(lat);
+      const parsedLng = parseFloat(lng);
+      
+      if (!isNaN(parsedLat) && !isNaN(parsedLng)) { // 👈 Check for valid numbers
+        L.marker([parsedLat, parsedLng], { 
+          icon: weatherIcons[weather] || L.Icon.Default 
+        }).addTo(map)
+          .bindPopup(`<b>${name}</b><br>Weather: ${weather}`);
+      }
+    });
+  } catch (error) {
+    console.error('Error loading markers:', error);
   }
+}
 
   // Updated Form Submission
   document.getElementById('reportForm').addEventListener('submit', async (e) => {
