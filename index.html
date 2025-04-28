@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weather Report</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+  <style>
+    #map { height: 400px; margin: 20px 0; }
+    form { max-width: 500px; margin: auto; }
+    input, select, textarea { width: 100%; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <form id="reportForm">
+    <input type="text" name="name" placeholder="Name" required>
+    <input type="number" name="id" placeholder="ID" required>
+    <select name="state" required>
+      <option value="">Select State</option>
+      <option value="CA">California</option>
+      <!-- Add other states -->
+    </select>
+    <input type="text" name="zip" placeholder="ZIP Code" required>
+    <select name="weatherType" required>
+      <option value="">Weather Type</option>
+      <option value="sunny">☀️ Sunny</option>
+      <option value="rainy">🌧️ Rainy</option>
+      <!-- Add more -->
+    </select>
+    <textarea name="notes" placeholder="Notes"></textarea>
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    const map = L.map('map').setView([37.8, -96], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // Submit form
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      await fetch('https://script.google.com/macros/s/AKfycbwjdG7AXmOGX8SBcLVogYQM-UcG_UUzBHUd6eEX1DPHv5KBkOI3CUs3sVZiyf3puo49wg/exec', { // Replace with your script URL
+        method: 'POST',
+        body: formData
+      });
+      alert('Report submitted!');
+    });
+
+    // Load markers from Google Sheet (publish sheet as CSV first!)
+    async function loadMarkers() {
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/1QDc5s1UhHzHkC5gIXkHqn1DbZgOr7s4k_-VUHGFlPmk/edit?usp=sharing'; // Replace with your CSV URL
+      const response = await fetch(csvUrl);
+      const csvData = await response.text();
+      csvData.split('\n').slice(1).forEach(row => {
+        const [timestamp, name, id, state, zip, weather, notes, lat, lng] = row.split(',');
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(`<b>${name}</b><br>${weather}<br>${notes}`);
+      });
+    }
+    loadMarkers();
+  </script>
+</body>
+</html>
