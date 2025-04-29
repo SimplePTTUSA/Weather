@@ -127,44 +127,51 @@
   </form>
 
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_zLeCdePX9VI_58DcgtSFvbXf0H8aPbAqCCiC5Wy-AwIMtqQ0MCwrtJwwYbgQlsPqnQ/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9QOQmG5bCjV8R8gHYXaN4lw_NuR3hKw-eBEqw-a0xbZpRY7ycGPL1Pp74uNJE0ue6og/exec';
 
-    document.getElementById('reportForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button');
-      const messageDiv = document.getElementById('message');
-      
-      try {
-        btn.disabled = true;
-        messageDiv.textContent = 'Submitting...';
-        messageDiv.className = '';
+  document.getElementById('reportForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const messageDiv = document.getElementById('message');
+    
+    try {
+      btn.disabled = true;
+      messageDiv.textContent = 'Submitting...';
+      messageDiv.className = '';
 
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
 
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        if (!response.ok) throw new Error('Server error');
-        const result = await response.json();
-
-        if (result.success) {
-          messageDiv.textContent = 'Report submitted successfully!';
-          messageDiv.className = 'success';
-          e.target.reset();
-        } else {
-          throw new Error(result.error || 'Unknown error');
-        }
-      } catch (error) {
-        messageDiv.textContent = `Error: ${error.message}`;
-        messageDiv.className = 'error';
-      } finally {
-        btn.disabled = false;
+      // Basic client-side validation
+      if (!data.zip.match(/^\d{5}$/)) {
+        throw new Error('ZIP code must be 5 digits');
       }
-    });
-  </script>
+
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        messageDiv.textContent = '✅ Report submitted!';
+        messageDiv.className = 'success';
+        e.target.reset();
+      } else {
+        throw new Error(result.error || 'Unknown server error');
+      }
+    } catch (error) {
+      messageDiv.textContent = `❌ Error: ${error.message}`;
+      messageDiv.className = 'error';
+      console.error('Full error:', error);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>
