@@ -127,7 +127,7 @@
   </form>
 
   <script>
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9QOQmG5bCjV8R8gHYXaN4lw_NuR3hKw-eBEqw-a0xbZpRY7ycGPL1Pp74uNJE0ue6og/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxB2q4fx5B-zoIdcf5bgeSDX7BpYnUY1OCtFg4ZVLXFs8J5csKwCQ2RqRlv5I2FTXjmig/exec';
 
   document.getElementById('reportForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -142,7 +142,7 @@
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData.entries());
 
-      // Basic client-side validation
+      // Validate ZIP before sending
       if (!data.zip.match(/^\d{5}$/)) {
         throw new Error('ZIP code must be 5 digits');
       }
@@ -153,12 +153,14 @@
         body: JSON.stringify(data)
       });
 
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
       const result = await response.json();
       
       if (result.success) {
-        messageDiv.textContent = '✅ Report submitted!';
+        messageDiv.textContent = '✅ Report submitted successfully!';
         messageDiv.className = 'success';
         e.target.reset();
       } else {
